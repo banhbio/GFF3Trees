@@ -1,0 +1,11 @@
+name = "GFF3Trees"
+uuid = "691e8c85-6b6e-4051-8c7e-8df901820a12"
+authors = ["banhbio <ban@kuicr.kyoto-u.ac.jp>"]
+version = "0.1.0"
+
+[deps]
+AbstractTrees = "1520ce14-60c1-5f80-bbc7-55ef81b5835c"
+GFF3 = "af1dc308-cb6b-11e8-32f0-31192efa90f6"
+Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
+Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
+URIParser = "30578b45-9adc-5946-b283-645ec420af67"
