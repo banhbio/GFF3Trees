@@ -211,3 +211,17 @@ function parse(reader::GFF3.Reader)
     end
     return chromosomes
 end
+
+function updateall!(c::Chromosome)
+    for child in children(c)
+        updateall!(child)
+    end
+end
+
+function updateall!(f::Feature)
+    update!(f)
+    for child in children(f)
+        #fix parent name
+        updateall!(child)
+    end
+end
