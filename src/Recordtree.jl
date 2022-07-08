@@ -29,21 +29,24 @@ end
 AbstractTrees.children(f::Feature) = f.children
 
 mutable struct Chromosome <: AbstractNode
-    record::String
+    seqid::String
     children::Vector{Feature}
+    allnode::Dict{String, Feature}
 end
-AbstractTrees.children(c::Chromosome) = c.children
 
+GFF3.seqid(c::Chromosome) = c.seqid
+AbstractTrees.children(c::Chromosome) = c.children
 
 AbstractTrees.nodevalue(n::AbstractNode) = n.record
 
 AbstractTrees.printnode(io::IO, d::Directive) = print(io, d.record)
 AbstractTrees.printnode(io::IO, c::Comment) = print(io, c.record)
 AbstractTrees.printnode(io::IO, f::Feature) = print(io, f.record)
-AbstractTrees.printnode(io::IO, c::Chromosome) = print(io, c.record)
+AbstractTrees.printnode(io::IO, c::Chromosome) = print(io, c.seqid)
 
 function Chromosome(c::String)
     children = Vector{Feature}[]
+    allnodes = Dict{String,Feature}()
     return Chromosome(c, children)
 end
 
@@ -91,12 +94,12 @@ function update!(f::Feature)
     f.record = new_record
 end
 
-function add_children!(c::Chromosome, children::Vector{Feature})
-    append!(c.children,children)
+function add_child!(c::Chromosome, child::Feature)
+    push!(c.children,child)
 end
 
-function add_children!(f::Feature, children::Vector{Feature})
-    append!(f.children,children)
+function add_children!(f::Feature, child::Feature)
+    push!(f.children,child)
 end
 
 encode(m::Missing) = "."
@@ -112,4 +115,43 @@ function encode(g::GFF3.GenomicFeatures.Strand)
     elseif g ==GFF3.GenomicFeatures.STRAND_BOTH
         return "."
     end
+end
+
+function getid(f::Feature, m)
+    return get(Dict(f.attributes), "ID", m)
+end
+
+function getparent(f::Feature, m)
+    return get(Dict(f.attributes), "Parent", m)
+end
+
+hasid(f::Feature) = !ismissing(getid(f, missing))
+hasparent(f::Feature) = !ismissing(getparent(f, missing))
+
+function replaceid!(f::Feature, old_new::Pair{AbstractString,AbstractString})
+    previous_ids = getid(f, missing)
+    if !ismissing(previous_ids)
+        return error("No id attributes")
+    end
+    
+    if !in(first(old_new), previous_ids)
+        return error("No old id in previous attributes")
+    end
+    new_ids = replace(previous_ids, old_new)
+    new_attributes = replace(f.attributes, Pair("ID", previous_ids)=>Pair("ID", new_ids))
+    f.attributes = new_attributes
+end
+
+function replaceparent!(f::Feature, old_new::Pair{AbstractString,AbstractString})
+    previous_parents = getparent(f, missing)
+    if !ismissing(previous_parents)
+        return error("No parent attributes")
+    end
+    
+    if !in(first(old_new), previous_parents)
+        return error("No old parent in previous attributes")
+    end
+    new_parents = replace(previous_parents, old_new)
+    new_attributes = replace(f.attributes, Pair("Parent", previous_parents)=>Pair("Parent", new_parents))
+    f.attributes = new_attributes
 end
