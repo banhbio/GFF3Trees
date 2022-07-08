@@ -203,7 +203,7 @@ function parse(reader::GFF3.Reader)
         for p in parents
             parent_feature = getfeature(chr, p, missing)
             if ismissing(parent_feature)
-                error("AAAAAAAAAAA")
+                error("parent feature does not exist")
             else
                 add_child!(parent_feature, feature)
             end
