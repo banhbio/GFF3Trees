@@ -47,8 +47,19 @@ AbstractTrees.printnode(io::IO, c::Chromosome) = print(io, c.seqid)
 function Chromosome(c::String)
     children = Vector{Feature}[]
     allnodes = Dict{String,Feature}()
-    return Chromosome(c, children)
+    return Chromosome(c, children, allnodes)
 end
+
+function subscribe!(c::Chromosome, f::Feature)
+    if hasid(f)
+        ids = getids(f)
+        for id in ids 
+            push!(c.allnode, Pair(id, f))
+        end
+    end
+end
+
+getfeature(c::Chromosome, id::AbstractString, m) = get(c.allnode, id, m)
 
 function Feature(record::GFF3.Record)
     seqid = GFF3.hasseqid(record) ? GFF3.seqid(record) : missing
@@ -98,7 +109,7 @@ function add_child!(c::Chromosome, child::Feature)
     push!(c.children,child)
 end
 
-function add_children!(f::Feature, child::Feature)
+function add_child!(f::Feature, child::Feature)
     push!(f.children,child)
 end
 
@@ -117,20 +128,20 @@ function encode(g::GFF3.GenomicFeatures.Strand)
     end
 end
 
-function getid(f::Feature, m)
-    return get(Dict(f.attributes), "ID", m)
+function getids(f::Feature)
+    return get(Dict(f.attributes), "ID", AbstractString[])
 end
 
-function getparent(f::Feature, m)
-    return get(Dict(f.attributes), "Parent", m)
+function getparentids(f::Feature)
+    return get(Dict(f.attributes), "Parent", AbstractString[])
 end
 
-hasid(f::Feature) = !ismissing(getid(f, missing))
-hasparent(f::Feature) = !ismissing(getparent(f, missing))
+hasid(f::Feature) = !isempty(getids(f))
+hasparent(f::Feature) = !isempty(getparentids(f))
 
 function replaceid!(f::Feature, old_new::Pair{AbstractString,AbstractString})
-    previous_ids = getid(f, missing)
-    if !ismissing(previous_ids)
+    previous_ids = getids(f)
+    if !empty(previous_ids)
         return error("No id attributes")
     end
     
@@ -143,8 +154,8 @@ function replaceid!(f::Feature, old_new::Pair{AbstractString,AbstractString})
 end
 
 function replaceparent!(f::Feature, old_new::Pair{AbstractString,AbstractString})
-    previous_parents = getparent(f, missing)
-    if !ismissing(previous_parents)
+    previous_parents = getparentids(f)
+    if !isempty(previous_parents)
         return error("No parent attributes")
     end
     
@@ -154,4 +165,49 @@ function replaceparent!(f::Feature, old_new::Pair{AbstractString,AbstractString}
     new_parents = replace(previous_parents, old_new)
     new_attributes = replace(f.attributes, Pair("Parent", previous_parents)=>Pair("Parent", new_parents))
     f.attributes = new_attributes
+end
+
+function parse(reader::GFF3.Reader)
+    chromosomes = Chromosome[]
+    chr = Chromosome("")
+    for record in reader
+        if GFF3.isdirective(record)
+            d = Directive(record)
+            push!(chromosomes, d)
+            continue
+        elseif GFF3.iscomment(record)
+            c = Comment(record)
+            push!(chromosomes, c)
+            continue
+        elseif GFF3.isfeature(record)
+            #nothing happen
+        else
+            #not reach
+        end
+
+        feature = Feature(record)
+    
+        if chr.seqid != feature.seqid
+            chr = Chromosome(GFF3.seqid(record))
+            push!(chromosomes, chr)
+        end
+
+        subscribe!(chr, feature)
+
+        parents = getparentids(feature)
+        if isempty(parents)
+            add_child!(chr, feature)
+            continue
+        end
+    
+        for p in parents
+            parent_feature = getfeature(chr, p, missing)
+            if ismissing(parent_feature)
+                error("AAAAAAAAAAA")
+            else
+                add_child!(parent_feature, feature)
+            end
+        end
+    end
+    return chromosomes
 end
