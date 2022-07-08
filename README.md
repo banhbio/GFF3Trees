@@ -1,3 +1,3 @@
 # GFF3Trees.jl
 
-This is my utilityies fo GFF3.jl
+This is my utilityies for GFF3.jl
