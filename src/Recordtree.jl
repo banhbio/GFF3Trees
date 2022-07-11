@@ -151,20 +151,20 @@ function replaceid!(f::Feature, old_new::Pair{AbstractString,AbstractString})
     new_ids = replace(previous_ids, old_new)
     new_attributes = replace(f.attributes, Pair("ID", previous_ids)=>Pair("ID", new_ids))
     f.attributes = new_attributes
-end
 
-function replaceparent!(f::Feature, old_new::Pair{AbstractString,AbstractString})
-    previous_parents = getparentids(f)
-    if !isempty(previous_parents)
-        return error("No parent attributes")
-    end
+    for c in children(f)
+        previous_parents = getparentids(c)
+        if !isempty(previous_parents)
+            return error("No parent attributes")
+        end
     
-    if !in(first(old_new), previous_parents)
-        return error("No old parent in previous attributes")
+        if !in(first(old_new), previous_parents)
+            return error("No old parent in previous attributes")
+        end
+        new_parents = replace(previous_parents, old_new)
+        new_attributes = replace(c.attributes, Pair("Parent", previous_parents)=>Pair("Parent", new_parents))
+        c.attributes = new_attributes
     end
-    new_parents = replace(previous_parents, old_new)
-    new_attributes = replace(f.attributes, Pair("Parent", previous_parents)=>Pair("Parent", new_parents))
-    f.attributes = new_attributes
 end
 
 function parse(reader::GFF3.Reader)
