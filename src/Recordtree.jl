@@ -44,6 +44,9 @@ AbstractTrees.printnode(io::IO, c::Comment) = print(io, c.record)
 AbstractTrees.printnode(io::IO, f::Feature) = print(io, f.record)
 AbstractTrees.printnode(io::IO, c::Chromosome) = print(io, c.seqid)
 
+Base.show(io::IO, c::Chromosome) = AbstractTrees.print_tree(io, c)
+Base.show(io::IO, f::Feature) = print(io, f.record)
+
 function Chromosome(c::String)
     children = Vector{Feature}[]
     allnodes = Dict{String,Feature}()
