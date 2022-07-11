@@ -138,9 +138,9 @@ end
 hasid(f::Feature) = !isempty(getids(f))
 hasparent(f::Feature) = !isempty(getparentids(f))
 
-function replaceid!(f::Feature, old_new::Pair{AbstractString,AbstractString})
+function replaceid!(f::Feature, old_new::Pair{String,String})
     previous_ids = getids(f)
-    if !empty(previous_ids)
+    if isempty(previous_ids)
         return error("No id attributes")
     end
     
@@ -153,7 +153,7 @@ function replaceid!(f::Feature, old_new::Pair{AbstractString,AbstractString})
 
     for c in children(f)
         previous_parents = getparentids(c)
-        if !isempty(previous_parents)
+        if isempty(previous_parents)
             return error("No parent attributes")
         end
     
