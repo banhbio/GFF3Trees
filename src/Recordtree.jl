@@ -100,7 +100,6 @@ function update!(f::Feature)
         ],
         "\t"
     )
-    @show content
     new_record = GFF3.Record(content)
     f.record = new_record
 end
