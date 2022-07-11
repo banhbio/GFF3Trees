@@ -221,7 +221,6 @@ end
 function updateall!(f::Feature)
     update!(f)
     for child in children(f)
-        #fix parent name
         updateall!(child)
     end
 end
