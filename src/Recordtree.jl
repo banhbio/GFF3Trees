@@ -144,11 +144,13 @@ hasparent(f::Feature) = !isempty(getparentids(f))
 function replaceid!(f::Feature, old_new::Pair{String,String})
     previous_ids = getids(f)
     if isempty(previous_ids)
-        return error("No id attributes")
+        @warn "No id attributes"
+        return
     end
     
     if !in(first(old_new), previous_ids)
-        return error("No old id in previous attributes")
+        @warn "No old id in previous attributes"
+        return
     end
     new_ids = replace(previous_ids, old_new)
     new_attributes = replace(f.attributes, Pair("ID", previous_ids)=>Pair("ID", new_ids))
@@ -157,11 +159,12 @@ function replaceid!(f::Feature, old_new::Pair{String,String})
     for c in children(f)
         previous_parents = getparentids(c)
         if isempty(previous_parents)
-            return error("No parent attributes")
+            @warn "No parent attributes"
+            continue
         end
     
         if !in(first(old_new), previous_parents)
-            return error("No old parent in previous attributes")
+            @warn "No old parent in previous attributes"
         end
         new_parents = replace(previous_parents, old_new)
         new_attributes = replace(c.attributes, Pair("Parent", previous_parents)=>Pair("Parent", new_parents))
@@ -205,7 +208,8 @@ function parse(reader::GFF3.Reader)
         for p in parents
             parent_feature = getfeature(chr, p, missing)
             if ismissing(parent_feature)
-                error("parent feature does not exist")
+                @warn "parent feature does not exist"
+                continue
             else
                 add_child!(parent_feature, feature)
             end
