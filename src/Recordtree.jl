@@ -172,6 +172,28 @@ function replaceid!(f::Feature, old_new::Pair{String,String})
     end
 end
 
+function getnames(f::Feature)
+    return get(Dict(f.attributes), "Name", AbstractString[])
+end
+
+hasname(f::Feature) = !isempty(getnames(f))
+
+function replacename!(f::Feature, old_new::Pair{String, String})
+    previous_names = getnames(f)
+    if isempty(previous_names)
+        @warn "No name attributes"
+        return
+    end
+
+    if !in(first(old_new), previous_names)
+        @warn "No old name in previous attributes"
+    end
+
+    new_names = replace(previous_names, old_new)
+    new_attributes = replace(f.attributes, Pair("Name", previous_names)=>Pair("Name", new_names))
+    f.attributes = new_attributes
+end
+
 function parse(reader::GFF3.Reader)
     chromosomes = Chromosome[]
     chr = Chromosome("")
