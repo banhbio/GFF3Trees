@@ -252,3 +252,16 @@ function updateall!(f::Feature)
         updateall!(child)
     end
 end
+
+function Base.write(writer::GFF3.Writer, c::Chromosome)
+    for child in AbstractTrees.children(c)
+        write(writer, child)
+    end 
+end
+
+function Base.write(writer::GFF3.Writer, f::Feature)
+    write(writer, f.record)
+    for child in AbstractTrees.children(f)
+        write(writer, child)
+    end 
+end
