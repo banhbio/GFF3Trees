@@ -205,16 +205,16 @@ function replacename!(f::Feature, old_new::Pair{String, String})
 end
 
 function parse(reader::GFF3.Reader)
-    chromosomes = Chromosome[]
+    chromosomes = Dict{String, Chromosome}()
     chr = Chromosome("")
     for record in reader
         if GFF3.isdirective(record)
             d = Directive(record)
-            push!(chromosomes, d)
+            #nothing / TODO do something
             continue
         elseif GFF3.iscomment(record)
             c = Comment(record)
-            push!(chromosomes, c)
+            #nothing / TODO do something
             continue
         elseif GFF3.isfeature(record)
             #nothing happen
@@ -226,7 +226,7 @@ function parse(reader::GFF3.Reader)
     
         if chr.seqid != feature.seqid
             chr = Chromosome(GFF3.seqid(record))
-            push!(chromosomes, chr)
+            push!(chromosomes, GFF3.seqid(chr)=>chr)
         end
 
         subscribe!(chr, feature)
