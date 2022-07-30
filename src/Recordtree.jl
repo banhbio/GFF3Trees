@@ -26,6 +26,16 @@ mutable struct Feature <: AbstractNode
     children::Vector{Feature}
 end
 
+GFF3.Record(f::Feature) = f.record
+GFF3.seqid(f::Feature) = f.seqid
+GFF3.featuretype(f::Feature) = f.featuretype
+GFF3.source(f::Feature) = f.source
+GFF3.seqstart(f::Feature) = f.seqstart
+GFF3.seqend(f::Feature) = f.seqend
+GFF3.score(f::Feature) = f.score
+GFF3.strand(f::Feature) = f.strand
+GFF3.phase(f::Feature) = f.phase
+GFF3.attributes(f::Feature) = f.attributes 
 AbstractTrees.children(f::Feature) = f.children
 
 mutable struct Chromosome <: AbstractNode
